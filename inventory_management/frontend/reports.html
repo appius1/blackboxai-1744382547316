@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - Inventory Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+        .report-card {
+            transition: all 0.3s ease;
+        }
+        .report-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="min-h-screen flex">
+        <!-- Sidebar -->
+        <aside class="bg-gradient-to-b from-indigo-700 to-indigo-900 text-white w-64 flex-shrink-0 hidden md:block">
+            <div class="p-6">
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-boxes text-2xl text-indigo-300"></i>
+                    <span class="text-xl font-semibold">Inventory Pro</span>
+                </div>
+            </div>
+            <nav class="mt-6 px-4">
+                <div class="space-y-2">
+                    <a href="dashboard.html" class="flex items-center px-4 py-3 hover:bg-indigo-800 rounded-lg transition-colors duration-200">
+                        <i class="fas fa-tachometer-alt w-6 text-indigo-300"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="products.html" class="flex items-center px-4 py-3 hover:bg-indigo-800 rounded-lg transition-colors duration-200">
+                        <i class="fas fa-box w-6 text-indigo-300"></i>
+                        <span>Products</span>
+                    </a>
+                    <a href="customers.html" class="flex items-center px-4 py-3 hover:bg-indigo-800 rounded-lg transition-colors duration-200">
+                        <i class="fas fa-users w-6 text-indigo-300"></i>
+                        <span>Customers</span>
+                    </a>
+                    <a href="sales.html" class="flex items-center px-4 py-3 hover:bg-indigo-800 rounded-lg transition-colors duration-200">
+                        <i class="fas fa-shopping-cart w-6 text-indigo-300"></i>
+                        <span>Sales</span>
+                    </a>
+                    <a href="purchase-orders.html" class="flex items-center px-4 py-3 hover:bg-indigo-800 rounded-lg transition-colors duration-200">
+                        <i class="fas fa-file-invoice w-6 text-indigo-300"></i>
+                        <span>Purchase Orders</span>
+                    </a>
+                    <a href="reports.html" class="flex items-center px-4 py-3 bg-indigo-800 rounded-lg transition-colors duration-200">
+                        <i class="fas fa-chart-bar w-6 text-indigo-300"></i>
+                        <span>Reports</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Top Navigation -->
+            <header class="bg-white shadow-sm">
+                <div class="flex items-center justify-between p-4">
+                    <div class="flex items-center space-x-4">
+                        <button class="text-gray-500 md:hidden">
+                            <i class="fas fa-bars text-xl"></i>
+                        </button>
+                        <h1 class="text-2xl font-semibold text-gray-900">Reports & Analytics</h1>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <button class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors duration-200">
+                            <i class="fas fa-download mr-2"></i>
+                            Export Report
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Main Content Area -->
+            <main class="flex-1 overflow-y-auto p-6">
+                <!-- Date Range Filter -->
+                <div class="mb-6">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+                        <div class="flex items-center space-x-4">
+                            <select class="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-600 focus:border-transparent">
+                                <option>Last 7 Days</option>
+                                <option>Last 30 Days</option>
+                                <option>Last 3 Months</option>
+                                <option>Last Year</option>
+                                <option>Custom Range</option>
+                            </select>
+                            <button class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors duration-200">
+                                <i class="fas fa-sync-alt mr-2"></i>
+                                Refresh
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Overview -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                    <div class="report-card bg-white rounded-xl shadow-sm p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="bg-blue-100 rounded-full p-3">
+                                <i class="fas fa-dollar-sign text-blue-600 text-xl"></i>
+                            </div>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-900">$124,563</h3>
+                        <p class="text-gray-600 text-sm">Total Revenue</p>
+                        <div class="mt-2 flex items-center text-sm text-green-600">
+                            <i class="fas fa-arrow-up mr-1"></i>
+                            <span>12% vs last month</span>
+                        </div>
+                    </div>
+
+                    <div class="report-card bg-white rounded-xl shadow-sm p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="bg-green-100 rounded-full p-3">
+                                <i class="fas fa-shopping-cart text-green-600 text-xl"></i>
+                            </div>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-900">1,234</h3>
+                        <p class="text-gray-600 text-sm">Total Orders</p>
+                        <div class="mt-2 flex items-center text-sm text-green-600">
+                            <i class="fas fa-arrow-up mr-1"></i>
+                            <span>8% vs last month</span>
+                        </div>
+                    </div>
+
+                    <div class="report-card bg-white rounded-xl shadow-sm p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="bg-purple-100 rounded-full p-3">
+                                <i class="fas fa-box text-purple-600 text-xl"></i>
+                            </div>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-900">567</h3>
+                        <p class="text-gray-600 text-sm">Products Sold</p>
+                        <div class="mt-2 flex items-center text-sm text-red-600">
+                            <i class="fas fa-arrow-down mr-1"></i>
+                            <span>5% vs last month</span>
+                        </div>
+                    </div>
+
+                    <div class="report-card bg-white rounded-xl shadow-sm p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="bg-yellow-100 rounded-full p-3">
+                                <i class="fas fa-users text-yellow-600 text-xl"></i>
+                            </div>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-900">89</h3>
+                        <p class="text-gray-600 text-sm">New Customers</p>
+                        <div class="mt-2 flex items-center text-sm text-green-600">
+                            <i class="fas fa-arrow-up mr-1"></i>
+                            <span>15% vs last month</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                    <!-- Sales Trend -->
+                    <div class="bg-white rounded-xl shadow-sm p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Sales Trend</h3>
+                        <canvas id="salesChart" height="300"></canvas>
+                    </div>
+
+                    <!-- Top Products -->
+                    <div class="bg-white rounded-xl shadow-sm p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Top Products</h3>
+                        <canvas id="productsChart" height="300"></canvas>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                    <div class="p-6 border-b border-gray-200">
+                        <h3 class="text-lg font-semibold text-gray-900">Recent Activity</h3>
+                    </div>
+                    <div class="p-6">
+                        <div class="space-y-6">
+                            <div class="flex items-start space-x-4">
+                                <div class="bg-blue-100 rounded-full p-3">
+                                    <i class="fas fa-shopping-cart text-blue-600"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900">New sale recorded</p>
+                                    <p class="text-sm text-gray-600">iPhone 13 Pro - 2 units</p>
+                                    <p class="text-xs text-gray-400 mt-1">2 hours ago</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start space-x-4">
+                                <div class="bg-green-100 rounded-full p-3">
+                                    <i class="fas fa-user-plus text-green-600"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900">New customer registered</p>
+                                    <p class="text-sm text-gray-600">Sarah Johnson</p>
+                                    <p class="text-xs text-gray-400 mt-1">4 hours ago</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start space-x-4">
+                                <div class="bg-yellow-100 rounded-full p-3">
+                                    <i class="fas fa-box text-yellow-600"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900">Low stock alert</p>
+                                    <p class="text-sm text-gray-600">MacBook Pro - 5 units remaining</p>
+                                    <p class="text-xs text-gray-400 mt-1">6 hours ago</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // Mobile menu toggle
+        const menuButton = document.querySelector('button.md\\:hidden');
+        const sidebar = document.querySelector('aside');
+        
+        menuButton.addEventListener('click', () => {
+            sidebar.classList.toggle('hidden');
+        });
+
+        // Temporarily disabled for development
+        // if (!localStorage.getItem('token')) {
+
+        // Sales Chart
+        const salesCtx = document.getElementById('salesChart').getContext('2d');
+        new Chart(salesCtx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                datasets: [{
+                    label: 'Sales',
+                    data: [65, 59, 80, 81, 56, 55],
+                    borderColor: '#4F46E5',
+                    tension: 0.4,
+                    fill: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+
+        // Products Chart
+        const productsCtx = document.getElementById('productsChart').getContext('2d');
+        new Chart(productsCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['iPhone 13 Pro', 'MacBook Pro', 'iPad Air', 'AirPods Pro'],
+                datasets: [{
+                    data: [300, 200, 150, 100],
+                    backgroundColor: ['#4F46E5', '#10B981', '#F59E0B', '#EF4444']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+    </script>
+</body>
+</html>
