@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Products - Inventory Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+        .product-card {
+            transition: all 0.3s ease;
+        }
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="min-h-screen flex">
+        <!-- Sidebar (Same as dashboard.html) -->
+        <aside class="bg-gradient-to-b from-indigo-700 to-indigo-900 text-white w-64 flex-shrink-0 hidden md:block">
+            <div class="p-6">
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-boxes text-2xl text-indigo-300"></i>
+                    <span class="text-xl font-semibold">Inventory Pro</span>
+                </div>
+            </div>
+            <nav class="mt-6 px-4">
+                <div class="space-y-2">
+                    <a href="dashboard.html" class="flex items-center px-4 py-3 hover:bg-indigo-800 rounded-lg transition-colors duration-200">
+                        <i class="fas fa-tachometer-alt w-6 text-indigo-300"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="products.html" class="flex items-center px-4 py-3 bg-indigo-800 rounded-lg transition-colors duration-200">
+                        <i class="fas fa-box w-6 text-indigo-300"></i>
+                        <span>Products</span>
+                    </a>
+                    <a href="#" class="flex items-center px-4 py-3 hover:bg-indigo-800 rounded-lg transition-colors duration-200">
+                        <i class="fas fa-users w-6 text-indigo-300"></i>
+                        <span>Customers</span>
+                    </a>
+                    <a href="#" class="flex items-center px-4 py-3 hover:bg-indigo-800 rounded-lg transition-colors duration-200">
+                        <i class="fas fa-shopping-cart w-6 text-indigo-300"></i>
+                        <span>Sales</span>
+                    </a>
+                    <a href="#" class="flex items-center px-4 py-3 hover:bg-indigo-800 rounded-lg transition-colors duration-200">
+                        <i class="fas fa-file-invoice w-6 text-indigo-300"></i>
+                        <span>Purchase Orders</span>
+                    </a>
+                    <a href="#" class="flex items-center px-4 py-3 hover:bg-indigo-800 rounded-lg transition-colors duration-200">
+                        <i class="fas fa-chart-bar w-6 text-indigo-300"></i>
+                        <span>Reports</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Top Navigation -->
+            <header class="bg-white shadow-sm">
+                <div class="flex items-center justify-between p-4">
+                    <div class="flex items-center space-x-4">
+                        <button class="text-gray-500 md:hidden">
+                            <i class="fas fa-bars text-xl"></i>
+                        </button>
+                        <h1 class="text-2xl font-semibold text-gray-900">Products</h1>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <button class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors duration-200">
+                            <i class="fas fa-plus mr-2"></i>
+                            Add Product
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Main Content Area -->
+            <main class="flex-1 overflow-y-auto p-6">
+                <!-- Search and Filters -->
+                <div class="mb-6">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+                        <div class="flex-1 max-w-lg">
+                            <div class="relative">
+                                <input type="text" placeholder="Search products..." 
+                                    class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent">
+                                <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            </div>
+                        </div>
+                        <div class="flex space-x-4">
+                            <select class="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-600 focus:border-transparent">
+                                <option>All Categories</option>
+                                <option>Electronics</option>
+                                <option>Clothing</option>
+                                <option>Accessories</option>
+                            </select>
+                            <select class="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-600 focus:border-transparent">
+                                <option>Sort by</option>
+                                <option>Name</option>
+                                <option>Price: Low to High</option>
+                                <option>Price: High to Low</option>
+                                <option>Stock</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Products Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <!-- Product Card -->
+                    <div class="product-card bg-white rounded-xl shadow-sm overflow-hidden">
+                        <div class="relative">
+                            <img src="https://via.placeholder.com/300x200" alt="Product" class="w-full h-48 object-cover">
+                            <span class="absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full">In Stock</span>
+                        </div>
+                        <div class="p-4">
+                            <h3 class="text-lg font-semibold text-gray-900">iPhone 13 Pro</h3>
+                            <p class="text-sm text-gray-600 mb-2">Electronics</p>
+                            <div class="flex items-center justify-between">
+                                <span class="text-lg font-bold text-indigo-600">$999</span>
+                                <span class="text-sm text-gray-500">Stock: 45</span>
+                            </div>
+                            <div class="mt-4 flex space-x-2">
+                                <button class="flex-1 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors duration-200">
+                                    Edit
+                                </button>
+                                <button class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- More Product Cards (Similar structure) -->
+                    <!-- You can duplicate the product card div above for more products -->
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // Mobile menu toggle
+        const menuButton = document.querySelector('button.md\\:hidden');
+        const sidebar = document.querySelector('aside');
+        
+        menuButton.addEventListener('click', () => {
+            sidebar.classList.toggle('hidden');
+        });
+
+        // Temporarily disabled for development
+        // if (!localStorage.getItem('token')) {
+        //     window.location.href = '/index.html';
+        // }
+    </script>
+</body>
+</html>
