@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <div class="container mx-auto px-4 h-screen flex items-center justify-center">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 space-y-8">
+            <div class="text-center">
+                <i class="fas fa-boxes text-4xl text-indigo-600 mb-4"></i>
+                <h2 class="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h2>
+                <p class="text-gray-600">Sign in to your account</p>
+            </div>
+
+            <form class="space-y-6">
+                <div class="space-y-2">
+                    <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+                    <div class="relative">
+                        <i class="fas fa-envelope absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <input type="email" id="email" name="email" 
+                            class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
+                            placeholder="Enter your email">
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+                    <div class="relative">
+                        <i class="fas fa-lock absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <input type="password" id="password" name="password" 
+                            class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
+                            placeholder="Enter your password">
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <input type="checkbox" id="remember" name="remember" 
+                            class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                        <label for="remember" class="ml-2 block text-sm text-gray-700">Remember me</label>
+                    </div>
+                    <a href="#" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">Forgot password?</a>
+                </div>
+
+                <button type="submit" 
+                    class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
+                    <i class="fas fa-sign-in-alt mr-2"></i>
+                    Sign in
+                </button>
+            </form>
+
+            <div class="text-center">
+                <p class="text-sm text-gray-600">
+                    Don't have an account? 
+                    <a href="#" class="font-medium text-indigo-600 hover:text-indigo-500">Sign up</a>
+                </p>
+            </div>
+
+            <div class="relative">
+                <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-gray-300"></div>
+                </div>
+                <div class="relative flex justify-center text-sm">
+                    <span class="px-2 bg-white text-gray-500">Or continue with</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-3">
+                <button class="flex justify-center items-center py-2 px-4 border border-gray-300 rounded-lg shadow-sm bg-white hover:bg-gray-50 transition-colors duration-200">
+                    <i class="fab fa-google text-red-500"></i>
+                </button>
+                <button class="flex justify-center items-center py-2 px-4 border border-gray-300 rounded-lg shadow-sm bg-white hover:bg-gray-50 transition-colors duration-200">
+                    <i class="fab fa-facebook text-blue-600"></i>
+                </button>
+                <button class="flex justify-center items-center py-2 px-4 border border-gray-300 rounded-lg shadow-sm bg-white hover:bg-gray-50 transition-colors duration-200">
+                    <i class="fab fa-apple text-gray-900"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.querySelector('form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch('http://localhost:5000/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    localStorage.setItem('token', data.data.token);
+                    localStorage.setItem('refreshToken', data.data.refreshToken);
+                    window.location.href = '/dashboard.html';
+                } else {
+                    alert('Login failed: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                alert('Login failed. Please try again.');
+            }
+        });
+    </script>
+</body>
+</html>
