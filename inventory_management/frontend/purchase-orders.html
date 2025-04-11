@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purchase Orders - Inventory Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+        .po-card {
+            transition: all 0.3s ease;
+        }
+        .po-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="min-h-screen flex">
+        <!-- Sidebar -->
+        <aside class="bg-gradient-to-b from-indigo-700 to-indigo-900 text-white w-64 flex-shrink-0 hidden md:block">
+            <div class="p-6">
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-boxes text-2xl text-indigo-300"></i>
+                    <span class="text-xl font-semibold">Inventory Pro</span>
+                </div>
+            </div>
+            <nav class="mt-6 px-4">
+                <div class="space-y-2">
+                    <a href="dashboard.html" class="flex items-center px-4 py-3 hover:bg-indigo-800 rounded-lg transition-colors duration-200">
+                        <i class="fas fa-tachometer-alt w-6 text-indigo-300"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="products.html" class="flex items-center px-4 py-3 hover:bg-indigo-800 rounded-lg transition-colors duration-200">
+                        <i class="fas fa-box w-6 text-indigo-300"></i>
+                        <span>Products</span>
+                    </a>
+                    <a href="customers.html" class="flex items-center px-4 py-3 hover:bg-indigo-800 rounded-lg transition-colors duration-200">
+                        <i class="fas fa-users w-6 text-indigo-300"></i>
+                        <span>Customers</span>
+                    </a>
+                    <a href="sales.html" class="flex items-center px-4 py-3 hover:bg-indigo-800 rounded-lg transition-colors duration-200">
+                        <i class="fas fa-shopping-cart w-6 text-indigo-300"></i>
+                        <span>Sales</span>
+                    </a>
+                    <a href="purchase-orders.html" class="flex items-center px-4 py-3 bg-indigo-800 rounded-lg transition-colors duration-200">
+                        <i class="fas fa-file-invoice w-6 text-indigo-300"></i>
+                        <span>Purchase Orders</span>
+                    </a>
+                    <a href="#" class="flex items-center px-4 py-3 hover:bg-indigo-800 rounded-lg transition-colors duration-200">
+                        <i class="fas fa-chart-bar w-6 text-indigo-300"></i>
+                        <span>Reports</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Top Navigation -->
+            <header class="bg-white shadow-sm">
+                <div class="flex items-center justify-between p-4">
+                    <div class="flex items-center space-x-4">
+                        <button class="text-gray-500 md:hidden">
+                            <i class="fas fa-bars text-xl"></i>
+                        </button>
+                        <h1 class="text-2xl font-semibold text-gray-900">Purchase Orders</h1>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <button class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors duration-200">
+                            <i class="fas fa-plus mr-2"></i>
+                            New Purchase Order
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Main Content Area -->
+            <main class="flex-1 overflow-y-auto p-6">
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                    <div class="po-card bg-white rounded-xl shadow-sm p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="bg-indigo-100 rounded-full p-3">
+                                <i class="fas fa-file-invoice text-indigo-600 text-xl"></i>
+                            </div>
+                            <span class="text-sm font-medium text-indigo-600">+15%</span>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-900">456</h3>
+                        <p class="text-gray-600 text-sm">Total POs</p>
+                    </div>
+
+                    <div class="po-card bg-white rounded-xl shadow-sm p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="bg-green-100 rounded-full p-3">
+                                <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                            </div>
+                            <span class="text-sm font-medium text-green-600">+10%</span>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-900">342</h3>
+                        <p class="text-gray-600 text-sm">Completed</p>
+                    </div>
+
+                    <div class="po-card bg-white rounded-xl shadow-sm p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="bg-yellow-100 rounded-full p-3">
+                                <i class="fas fa-clock text-yellow-600 text-xl"></i>
+                            </div>
+                            <span class="text-sm font-medium text-yellow-600">-5%</span>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-900">89</h3>
+                        <p class="text-gray-600 text-sm">Pending</p>
+                    </div>
+
+                    <div class="po-card bg-white rounded-xl shadow-sm p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="bg-red-100 rounded-full p-3">
+                                <i class="fas fa-exclamation-circle text-red-600 text-xl"></i>
+                            </div>
+                            <span class="text-sm font-medium text-red-600">+2%</span>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-900">25</h3>
+                        <p class="text-gray-600 text-sm">Overdue</p>
+                    </div>
+                </div>
+
+                <!-- Purchase Orders Table -->
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                    <div class="p-6 border-b border-gray-200">
+                        <h2 class="text-lg font-semibold text-gray-900">Recent Purchase Orders</h2>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">PO Number</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Supplier</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Items</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Due Date</th>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">#PO-001</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <img class="h-8 w-8 rounded-full" src="https://ui-avatars.com/api/?name=Tech+Supplies&background=6366f1&color=fff" alt="">
+                                            <div class="ml-3">
+                                                <div class="text-sm font-medium text-gray-900">Tech Supplies Inc.</div>
+                                                <div class="text-sm text-gray-500">contact@techsupplies.com</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">iPhone 13 Pro (50)</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">$49,950</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                            Pending
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2024-02-15</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        <button class="text-indigo-600 hover:text-indigo-900 mr-3">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="text-gray-600 hover:text-gray-900 mr-3">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="text-red-600 hover:text-red-900">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <!-- Add more purchase order rows here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // Mobile menu toggle
+        const menuButton = document.querySelector('button.md\\:hidden');
+        const sidebar = document.querySelector('aside');
+        
+        menuButton.addEventListener('click', () => {
+            sidebar.classList.toggle('hidden');
+        });
+
+        // Temporarily disabled for development
+        // if (!localStorage.getItem('token')) {
+        //     window.location.href = '/index.html';
+        // }
+    </script>
+</body>
+</html>
