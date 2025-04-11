@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
-const connectDB = require('./config/db');
+const { connectDB, disconnectDB } = require('./config/db');
 
 // Initialize express app
 const app = express();
@@ -43,17 +43,19 @@ const server = app.listen(PORT, () => {
 });
 
 // Handle unhandled promise rejections
-process.on('unhandledRejection', (err) => {
+process.on('unhandledRejection', async (err) => {
     console.log('UNHANDLED REJECTION! 💥 Shutting down...');
     console.log(err.name, err.message);
+    await disconnectDB();
     server.close(() => {
         process.exit(1);
     });
 });
 
 // Handle SIGTERM
-process.on('SIGTERM', () => {
+process.on('SIGTERM', async () => {
     console.log('👋 SIGTERM RECEIVED. Shutting down gracefully');
+    await disconnectDB();
     server.close(() => {
         console.log('💥 Process terminated!');
     });
