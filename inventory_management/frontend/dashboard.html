@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Inventory Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+        .dashboard-card {
+            transition: transform 0.2s ease-in-out;
+        }
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="min-h-screen flex">
+        <!-- Sidebar -->
+        <aside class="bg-gradient-to-b from-indigo-700 to-indigo-900 text-white w-64 flex-shrink-0 hidden md:block">
+            <div class="p-6">
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-boxes text-2xl text-indigo-300"></i>
+                    <span class="text-xl font-semibold">Inventory Pro</span>
+                </div>
+            </div>
+            <nav class="mt-6 px-4">
+                <div class="space-y-2">
+                    <a href="#" class="flex items-center px-4 py-3 bg-indigo-800 rounded-lg transition-colors duration-200">
+                        <i class="fas fa-tachometer-alt w-6 text-indigo-300"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="#" class="flex items-center px-4 py-3 hover:bg-indigo-800 rounded-lg transition-colors duration-200">
+                        <i class="fas fa-box w-6 text-indigo-300"></i>
+                        <span>Products</span>
+                    </a>
+                    <a href="#" class="flex items-center px-4 py-3 hover:bg-indigo-800 rounded-lg transition-colors duration-200">
+                        <i class="fas fa-users w-6 text-indigo-300"></i>
+                        <span>Customers</span>
+                    </a>
+                    <a href="#" class="flex items-center px-4 py-3 hover:bg-indigo-800 rounded-lg transition-colors duration-200">
+                        <i class="fas fa-shopping-cart w-6 text-indigo-300"></i>
+                        <span>Sales</span>
+                    </a>
+                    <a href="#" class="flex items-center px-4 py-3 hover:bg-indigo-800 rounded-lg transition-colors duration-200">
+                        <i class="fas fa-file-invoice w-6 text-indigo-300"></i>
+                        <span>Purchase Orders</span>
+                    </a>
+                    <a href="#" class="flex items-center px-4 py-3 hover:bg-indigo-800 rounded-lg transition-colors duration-200">
+                        <i class="fas fa-chart-bar w-6 text-indigo-300"></i>
+                        <span>Reports</span>
+                    </a>
+                </div>
+                
+                <div class="mt-8 pt-8 border-t border-indigo-800">
+                    <a href="#" class="flex items-center px-4 py-3 hover:bg-indigo-800 rounded-lg transition-colors duration-200">
+                        <i class="fas fa-cog w-6 text-indigo-300"></i>
+                        <span>Settings</span>
+                    </a>
+                    <a href="#" class="flex items-center px-4 py-3 hover:bg-indigo-800 rounded-lg transition-colors duration-200">
+                        <i class="fas fa-sign-out-alt w-6 text-indigo-300"></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Top Navigation -->
+            <header class="bg-white shadow-sm">
+                <div class="flex items-center justify-between p-4">
+                    <button class="text-gray-500 md:hidden">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                    <div class="flex items-center space-x-4">
+                        <div class="relative">
+                            <button class="p-2 text-gray-400 hover:text-gray-500 focus:outline-none">
+                                <i class="fas fa-bell text-xl"></i>
+                                <span class="absolute top-0 right-0 h-2 w-2 bg-red-500 rounded-full"></span>
+                            </button>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <img class="h-9 w-9 rounded-full object-cover" src="https://ui-avatars.com/api/?name=John+Doe&background=6366f1&color=fff" alt="User avatar">
+                            <div class="hidden md:block">
+                                <p class="text-sm font-medium text-gray-700">John Doe</p>
+                                <p class="text-xs text-gray-500">Administrator</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Main Content Area -->
+            <main class="flex-1 overflow-y-auto p-6">
+                <!-- Welcome Section -->
+                <div class="mb-8">
+                    <h1 class="text-2xl font-bold text-gray-900">Welcome back, John! 👋</h1>
+                    <p class="text-gray-600">Here's what's happening with your inventory today.</p>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="dashboard-card bg-white rounded-xl shadow-sm p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="bg-blue-100 rounded-full p-3">
+                                <i class="fas fa-box text-blue-600 text-xl"></i>
+                            </div>
+                            <span class="text-sm font-medium text-blue-600">+12%</span>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-900">2,451</h3>
+                        <p class="text-gray-600 text-sm">Total Products</p>
+                    </div>
+
+                    <div class="dashboard-card bg-white rounded-xl shadow-sm p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="bg-green-100 rounded-full p-3">
+                                <i class="fas fa-dollar-sign text-green-600 text-xl"></i>
+                            </div>
+                            <span class="text-sm font-medium text-green-600">+8%</span>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-900">$45,231</h3>
+                        <p class="text-gray-600 text-sm">Total Sales</p>
+                    </div>
+
+                    <div class="dashboard-card bg-white rounded-xl shadow-sm p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="bg-purple-100 rounded-full p-3">
+                                <i class="fas fa-users text-purple-600 text-xl"></i>
+                            </div>
+                            <span class="text-sm font-medium text-purple-600">+15%</span>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-900">1,234</h3>
+                        <p class="text-gray-600 text-sm">Total Customers</p>
+                    </div>
+
+                    <div class="dashboard-card bg-white rounded-xl shadow-sm p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="bg-yellow-100 rounded-full p-3">
+                                <i class="fas fa-clock text-yellow-600 text-xl"></i>
+                            </div>
+                            <span class="text-sm font-medium text-red-600">-5%</span>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-900">42</h3>
+                        <p class="text-gray-600 text-sm">Pending Orders</p>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="bg-white rounded-xl shadow-sm mb-6">
+                    <div class="p-6 border-b border-gray-100">
+                        <h2 class="text-lg font-semibold text-gray-900">Recent Activity</h2>
+                    </div>
+                    <div class="p-6">
+                        <div class="space-y-6">
+                            <div class="flex items-start space-x-4">
+                                <div class="bg-blue-100 rounded-full p-3">
+                                    <i class="fas fa-box text-blue-600"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900">New product added</p>
+                                    <p class="text-sm text-gray-600">iPhone 13 Pro - 10 units</p>
+                                    <p class="text-xs text-gray-400 mt-1">2 hours ago</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start space-x-4">
+                                <div class="bg-green-100 rounded-full p-3">
+                                    <i class="fas fa-shopping-cart text-green-600"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900">New sale recorded</p>
+                                    <p class="text-sm text-gray-600">MacBook Pro - 2 units</p>
+                                    <p class="text-xs text-gray-400 mt-1">4 hours ago</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start space-x-4">
+                                <div class="bg-purple-100 rounded-full p-3">
+                                    <i class="fas fa-user text-purple-600"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900">New customer registered</p>
+                                    <p class="text-sm text-gray-600">Sarah Johnson</p>
+                                    <p class="text-xs text-gray-400 mt-1">6 hours ago</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // Mobile menu toggle
+        const menuButton = document.querySelector('button.md\\:hidden');
+        const sidebar = document.querySelector('aside');
+        
+        menuButton.addEventListener('click', () => {
+            sidebar.classList.toggle('hidden');
+        });
+
+        // Temporarily disabled for development
+        // if (!localStorage.getItem('token')) {
+        //     window.location.href = '/index.html';
+        // }
+    </script>
+</body>
+</html>
