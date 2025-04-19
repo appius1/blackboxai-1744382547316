@@ -1,0 +1,21 @@
+{
+  "name": "appius",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "libs/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "turbo run lint"
+  },
+  "devDependencies": {
+    "turbo": "^1.10.0",
+    "typescript": "^5.0.4",
+    "prettier": "^2.8.8",
+    "eslint": "^8.40.0"
+  }
+}
