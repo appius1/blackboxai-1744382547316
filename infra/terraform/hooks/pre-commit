@@ -1,0 +1,14 @@
+#!/bin/bash
+set -e
+
+# Run Terraform format check
+terraform fmt -check -recursive
+
+# Run Terraform validation
+terraform validate
+
+# Check for sensitive data
+if git diff --cached | grep -i "secret\|password\|key\|token"; then
+    echo "WARNING: Potential sensitive data detected"
+    exit 1
+fi
