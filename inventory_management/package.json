@@ -1,0 +1,43 @@
+{
+  "name": "my-inventory-app",
+  "version": "1.0.0",
+  "description": "Offline-capable inventory management desktop app built with Electron, React, and SQLite",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "build": {
+    "appId": "com.mycompany.myinventoryapp",
+    "productName": "MyInventoryApp",
+    "files": [
+      "apps/frontend/**/*",
+      "apps/backend/**/*",
+      "libs/**/*",
+      "package.json"
+    ],
+    "directories": {
+      "buildResources": "assets"
+    },
+    "win": {
+      "target": "portable"
+    }
+  },
+  "dependencies": {
+    "better-sqlite3": "^7.6.2",
+    "chart.js": "^4.2.1",
+    "electron": "^25.2.0",
+    "electron-builder": "^24.6.0",
+    "html2pdf.js": "^0.10.1",
+    "jspdf": "^2.5.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.2.5",
+    "@types/react": "^18.2.7",
+    "@types/react-dom": "^18.2.4"
+  }
+}
