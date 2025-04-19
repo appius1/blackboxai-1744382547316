@@ -26,6 +26,37 @@ exports.createProduct = async (req, res) => {
 };
 
 /**
+ * Upload product image
+ * @route POST /api/products/:id/upload-image
+ * @access Private
+ */
+exports.uploadProductImage = async (req, res) => {
+    if (!req.file) {
+        throw new APIError('No image file uploaded', 400);
+    }
+
+    try {
+        const product = await Product.findById(req.params.id);
+        if (!product) {
+            throw new APIError('Product not found', 404);
+        }
+
+        // Save image path relative to app data directory
+        product.imagePath = req.file.filename;
+        await product.save();
+
+        res.status(200).json({
+            success: true,
+            data: {
+                imagePath: product.imagePath
+            }
+        });
+    } catch (error) {
+        throw new APIError('Error uploading product image', 500);
+    }
+};
+
+/**
  * Get all products
  * @route GET /api/products
  * @access Private
