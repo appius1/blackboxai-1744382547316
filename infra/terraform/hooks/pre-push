@@ -1,0 +1,12 @@
+#!/bin/bash
+set -e
+
+# Run Terraform security scan
+if command -v tfsec &> /dev/null; then
+    tfsec .
+fi
+
+# Run Terraform cost estimation
+if command -v infracost &> /dev/null; then
+    infracost breakdown --path .
+fi
