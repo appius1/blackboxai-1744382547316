@@ -1,0 +1,149 @@
+// This is your Prisma schema file
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Tenant Management
+model Tenant {
+  id            String    @id @default(cuid())
+  name          String
+  domain        String?   @unique
+  schemaName    String    @unique // PostgreSQL schema name
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  users         User[]
+  subscription  Subscription?
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String
+  firstName     String?
+  lastName      String?
+  role          UserRole  @default(USER)
+  twoFactorAuth Boolean   @default(false)
+  twoFactorKey  String?
+  tenantId      String
+  tenant        Tenant    @relation(fields: [tenantId], references: [id])
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([tenantId])
+}
+
+enum UserRole {
+  ADMIN
+  USER
+}
+
+// Subscription & Billing
+model Subscription {
+  id            String    @id @default(cuid())
+  tenantId      String    @unique
+  tenant        Tenant    @relation(fields: [tenantId], references: [id])
+  stripeCustomerId String
+  stripePriceId String
+  status        SubscriptionStatus
+  currentPeriodStart DateTime
+  currentPeriodEnd   DateTime
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  UNPAID
+}
+
+// Website Builder
+model Website {
+  id            String    @id @default(cuid())
+  name          String
+  domain        String?   @unique
+  template      String    // Template identifier
+  published     Boolean   @default(false)
+  pages         Page[]
+  tenantId      String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([tenantId])
+}
+
+model Page {
+  id            String    @id @default(cuid())
+  name          String
+  slug          String
+  content       Json      // Stores the page builder content
+  meta          Json?     // SEO metadata
+  websiteId     String
+  website       Website   @relation(fields: [websiteId], references: [id])
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@unique([websiteId, slug])
+  @@index([websiteId])
+}
+
+// E-commerce
+model Product {
+  id            String    @id @default(cuid())
+  name          String
+  description   String?
+  price         Decimal
+  images        String[]
+  variants      ProductVariant[]
+  collections   Collection[]
+  tenantId      String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([tenantId])
+}
+
+model ProductVariant {
+  id            String    @id @default(cuid())
+  name          String
+  sku           String?
+  price         Decimal
+  inventory     Int       @default(0)
+  productId     String
+  product       Product   @relation(fields: [productId], references: [id])
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([productId])
+}
+
+model Collection {
+  id            String    @id @default(cuid())
+  name          String
+  description   String?
+  products      Product[]
+  tenantId      String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([tenantId])
+}
+
+// Analytics
+model Analytics {
+  id            String    @id @default(cuid())
+  event         String
+  data          Json
+  tenantId      String
+  createdAt     DateTime  @default(now())
+
+  @@index([tenantId])
+  @@index([event])
+}
