@@ -21,6 +21,15 @@ const productRoutes = require('./routes/product.routes');
 const customerRoutes = require('./routes/customer.routes');
 const saleRoutes = require('./routes/sale.routes');
 const purchaseOrderRoutes = require('./routes/purchaseOrder.routes');
+const path = require('path');
+
+// Serve frontend static files
+app.use(express.static(path.join(__dirname, '../../frontend')));
+
+// Serve index.html for root route
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '../../frontend/dashboard-updated.html'));
+});
 
 // Initialize routes
 app.use('/api/auth', authRoutes);
