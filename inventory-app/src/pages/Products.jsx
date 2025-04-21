@@ -16,6 +16,7 @@ const Products = () => {
     image: null
   });
   const [searchTerm, setSearchTerm] = useState('');
+  const [formErrors, setFormErrors] = useState({});
 
   useEffect(() => {
     loadProducts();
@@ -30,8 +31,27 @@ const Products = () => {
     }
   };
 
+  const validateForm = () => {
+    const errors = {};
+    if (!formData.name.trim()) errors.name = 'Name is required';
+    if (!formData.sku.trim()) errors.sku = 'SKU is required';
+    if (!formData.category.trim()) errors.category = 'Category is required';
+    if (!formData.price || formData.price <= 0) errors.price = 'Price must be greater than 0';
+    if (!formData.stock || formData.stock < 0) errors.stock = 'Stock must be 0 or greater';
+    if (!formData.reorder_point || formData.reorder_point < 0) errors.reorder_point = 'Reorder point must be 0 or greater';
+    return errors;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate form
+    const errors = validateForm();
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      return;
+    }
+
     try {
       // Handle image upload
       let imagePath = null;
@@ -66,6 +86,7 @@ const Products = () => {
           reorder_point: '',
           image: null
         });
+        setFormErrors({});
       } else {
         alert('Error adding product: ' + result.error);
       }
@@ -79,6 +100,15 @@ const Products = () => {
     const file = e.target.files[0];
     if (file) {
       setFormData({ ...formData, image: file });
+    }
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    // Clear error when user starts typing
+    if (formErrors[name]) {
+      setFormErrors(prev => ({ ...prev, [name]: '' }));
     }
   };
 
@@ -140,7 +170,20 @@ const Products = () => {
         <h1 className="text-2xl font-bold text-gray-900">Products</h1>
         <div className="space-x-3">
           <button
-            onClick={() => setShowAddModal(true)}
+            onClick={() => {
+              setFormData({
+                name: '',
+                sku: '',
+                category: '',
+                description: '',
+                price: '',
+                stock: '',
+                reorder_point: '',
+                image: null
+              });
+              setFormErrors({});
+              setShowAddModal(true);
+            }}
             className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700"
           >
             <i className="fas fa-plus mr-2"></i>
@@ -280,41 +323,60 @@ const Products = () => {
                 <label className="block text-sm font-medium text-gray-700">Name</label>
                 <input
                   type="text"
+                  name="name"
                   required
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  className={`mt-1 block w-full rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 ${
+                    formErrors.name ? 'border-red-300' : 'border-gray-300'
+                  }`}
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={handleInputChange}
                 />
+                {formErrors.name && (
+                  <p className="mt-1 text-sm text-red-600">{formErrors.name}</p>
+                )}
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700">SKU</label>
                 <input
                   type="text"
+                  name="sku"
                   required
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  className={`mt-1 block w-full rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 ${
+                    formErrors.sku ? 'border-red-300' : 'border-gray-300'
+                  }`}
                   value={formData.sku}
-                  onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
+                  onChange={handleInputChange}
                 />
+                {formErrors.sku && (
+                  <p className="mt-1 text-sm text-red-600">{formErrors.sku}</p>
+                )}
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700">Category</label>
                 <input
                   type="text"
+                  name="category"
                   required
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  className={`mt-1 block w-full rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 ${
+                    formErrors.category ? 'border-red-300' : 'border-gray-300'
+                  }`}
                   value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  onChange={handleInputChange}
                 />
+                {formErrors.category && (
+                  <p className="mt-1 text-sm text-red-600">{formErrors.category}</p>
+                )}
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700">Description</label>
                 <textarea
+                  name="description"
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                   value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  onChange={handleInputChange}
                 />
               </div>
 
@@ -323,25 +385,37 @@ const Products = () => {
                   <label className="block text-sm font-medium text-gray-700">Price</label>
                   <input
                     type="number"
+                    name="price"
                     required
                     min="0"
                     step="0.01"
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    className={`mt-1 block w-full rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 ${
+                      formErrors.price ? 'border-red-300' : 'border-gray-300'
+                    }`}
                     value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                    onChange={handleInputChange}
                   />
+                  {formErrors.price && (
+                    <p className="mt-1 text-sm text-red-600">{formErrors.price}</p>
+                  )}
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Stock</label>
                   <input
                     type="number"
+                    name="stock"
                     required
                     min="0"
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    className={`mt-1 block w-full rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 ${
+                      formErrors.stock ? 'border-red-300' : 'border-gray-300'
+                    }`}
                     value={formData.stock}
-                    onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
+                    onChange={handleInputChange}
                   />
+                  {formErrors.stock && (
+                    <p className="mt-1 text-sm text-red-600">{formErrors.stock}</p>
+                  )}
                 </div>
               </div>
 
@@ -349,12 +423,18 @@ const Products = () => {
                 <label className="block text-sm font-medium text-gray-700">Reorder Point</label>
                 <input
                   type="number"
+                  name="reorder_point"
                   required
                   min="0"
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  className={`mt-1 block w-full rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 ${
+                    formErrors.reorder_point ? 'border-red-300' : 'border-gray-300'
+                  }`}
                   value={formData.reorder_point}
-                  onChange={(e) => setFormData({ ...formData, reorder_point: e.target.value })}
+                  onChange={handleInputChange}
                 />
+                {formErrors.reorder_point && (
+                  <p className="mt-1 text-sm text-red-600">{formErrors.reorder_point}</p>
+                )}
               </div>
 
               <div>
