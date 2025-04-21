@@ -1,0 +1,66 @@
+{
+  "name": "inventory-app",
+  "version": "1.0.0",
+  "description": "Offline-first inventory management system",
+  "main": "main.js",
+  "scripts": {
+    "start": "react-scripts start",
+    "electron-dev": "electron . --no-sandbox",
+    "dev": "concurrently \"cross-env BROWSER=none npm start\" \"wait-on http://localhost:3000 && electron . --no-sandbox\"",
+    "build": "react-scripts build && electron-builder",
+    "dist": "npx electron-builder --win portable"
+  },
+  "build": {
+    "appId": "com.inventoryapp",
+    "productName": "InventoryApp",
+    "files": [
+      "build/**/*",
+      "main.js",
+      "preload.js",
+      "electron/**"
+    ],
+    "directories": {
+      "buildResources": "assets"
+    },
+    "win": {
+      "target": ["portable"]
+    }
+  },
+  "dependencies": {
+    "@emotion/react": "^11.11.0",
+    "@emotion/styled": "^11.11.0",
+    "better-sqlite3": "^8.3.0",
+    "chart.js": "^4.3.0",
+    "electron-is-dev": "^2.0.0",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^2.5.1",
+    "react": "^18.2.0",
+    "react-chartjs-2": "^5.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.11.2",
+    "react-scripts": "5.0.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/forms": "^0.5.3",
+    "autoprefixer": "^10.4.14",
+    "concurrently": "^8.0.1",
+    "cross-env": "^7.0.3",
+    "electron": "^24.3.0",
+    "electron-builder": "^23.6.0",
+    "postcss": "^8.4.23",
+    "tailwindcss": "^3.3.2",
+    "wait-on": "^7.0.1"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
