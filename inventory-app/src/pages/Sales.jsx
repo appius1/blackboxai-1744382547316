@@ -9,6 +9,7 @@ const Sales = () => {
   const [customerName, setCustomerName] = useState('');
   const [selectedProduct, setSelectedProduct] = useState('');
   const [quantity, setQuantity] = useState(1);
+  const [discount, setDiscount] = useState(0);
   const [sales, setSales] = useState([]);
 
   useEffect(() => {
@@ -42,15 +43,16 @@ const Sales = () => {
     if (existingItem) {
       setCart(cart.map(item =>
         item.productId === product.id
-          ? { ...item, quantity: item.quantity + parseInt(quantity) }
+          ? { ...item, quantity: item.quantity + parseFloat(quantity) }
           : item
       ));
     } else {
       setCart([...cart, {
         productId: product.id,
         name: product.name,
-        price: product.price,
-        quantity: parseInt(quantity)
+        price: parseFloat(product.price),
+        quantity: parseFloat(quantity),
+        discount: 0
       }]);
     }
 
@@ -62,15 +64,54 @@ const Sales = () => {
     setCart(cart.filter(item => item.productId !== productId));
   };
 
-  const calculateTotal = () => {
+  const updateItemDiscount = (productId, discountValue) => {
+    setCart(cart.map(item =>
+      item.productId === productId
+        ? { ...item, discount: parseFloat(discountValue) || 0 }
+        : item
+    ));
+  };
+
+  const calculateItemTotal = (item) => {
+    const subtotal = item.price * item.quantity;
+    const discountAmount = (subtotal * item.discount) / 100;
+    return subtotal - discountAmount;
+  };
+
+  const calculateSubtotal = () => {
     return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+  };
+
+  const calculateTotalDiscount = () => {
+    const itemDiscounts = cart.reduce((total, item) => {
+      const subtotal = item.price * item.quantity;
+      const itemDiscountAmount = (subtotal * item.discount) / 100;
+      return total + itemDiscountAmount;
+    }, 0);
+    
+    const subtotal = calculateSubtotal();
+    const generalDiscountAmount = (subtotal * discount) / 100;
+    
+    return itemDiscounts + generalDiscountAmount;
+  };
+
+  const calculateTotal = () => {
+    const subtotal = calculateSubtotal();
+    const totalDiscount = calculateTotalDiscount();
+    return subtotal - totalDiscount;
   };
 
   const handleSaleSubmit = async () => {
     try {
       const saleData = {
         customerName,
-        items: cart,
+        items: cart.map(item => ({
+          ...item,
+          total: calculateItemTotal(item)
+        })),
+        subtotal: calculateSubtotal(),
+        discount: discount,
+        totalDiscount: calculateTotalDiscount(),
         total: calculateTotal(),
         date: new Date().toISOString()
       };
@@ -78,15 +119,11 @@ const Sales = () => {
       const result = await window.electron.invoke('create-sale', saleData);
       
       if (result.success) {
-        // Generate and save invoice
         await generateInvoice(result.saleId);
-        
-        // Reset form
         setCart([]);
         setCustomerName('');
+        setDiscount(0);
         setShowNewSale(false);
-        
-        // Reload sales and products
         loadSales();
         loadProducts();
       } else {
@@ -111,7 +148,6 @@ const Sales = () => {
       
       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
       
-      // Save PDF to app data directory
       const pdfBuffer = pdf.output('arraybuffer');
       await window.electron.invoke('save-invoice', {
         saleId,
@@ -151,6 +187,12 @@ const Sales = () => {
                 Date
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Subtotal
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Discount
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Total
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -171,7 +213,13 @@ const Sales = () => {
                   {new Date(sale.date).toLocaleDateString()}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  ${sale.total.toFixed(2)}
+                  Rs {sale.subtotal?.toFixed(2) || sale.total.toFixed(2)}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {sale.totalDiscount ? `Rs ${sale.totalDiscount.toFixed(2)}` : '-'}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  Rs {sale.total.toFixed(2)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   <button
@@ -226,7 +274,7 @@ const Sales = () => {
                     <option value="">Select a product</option>
                     {products.map(product => (
                       <option key={product.id} value={product.id}>
-                        {product.name} - ${product.price} (Stock: {product.stock})
+                        {product.name} - Rs {parseFloat(product.price).toFixed(2)} (Stock: {product.stock})
                       </option>
                     ))}
                   </select>
@@ -236,7 +284,8 @@ const Sales = () => {
                   <label className="block text-sm font-medium text-gray-700">Quantity</label>
                   <input
                     type="number"
-                    min="1"
+                    min="0.01"
+                    step="0.01"
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                     value={quantity}
                     onChange={(e) => setQuantity(e.target.value)}
@@ -270,6 +319,9 @@ const Sales = () => {
                           Price
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Discount (%)
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Total
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -287,10 +339,21 @@ const Sales = () => {
                             {item.quantity}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            ${item.price.toFixed(2)}
+                            Rs {item.price.toFixed(2)}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            ${(item.price * item.quantity).toFixed(2)}
+                            <input
+                              type="number"
+                              min="0"
+                              max="100"
+                              step="0.1"
+                              className="w-20 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                              value={item.discount}
+                              onChange={(e) => updateItemDiscount(item.productId, e.target.value)}
+                            />
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            Rs {calculateItemTotal(item).toFixed(2)}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             <button
@@ -307,9 +370,25 @@ const Sales = () => {
                 </div>
               </div>
 
-              {/* Total */}
-              <div className="flex justify-end space-x-4 items-center">
-                <span className="text-lg font-medium">Total: ${calculateTotal().toFixed(2)}</span>
+              {/* Total Section */}
+              <div className="flex flex-col items-end space-y-2">
+                <div className="flex items-center space-x-4">
+                  <label className="text-sm font-medium text-gray-700">General Discount (%)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.1"
+                    className="w-24 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    value={discount}
+                    onChange={(e) => setDiscount(parseFloat(e.target.value) || 0)}
+                  />
+                </div>
+                <div className="text-right space-y-1">
+                  <p className="text-sm text-gray-600">Subtotal: Rs {calculateSubtotal().toFixed(2)}</p>
+                  <p className="text-sm text-gray-600">Total Discount: Rs {calculateTotalDiscount().toFixed(2)}</p>
+                  <p className="text-lg font-medium text-gray-900">Total: Rs {calculateTotal().toFixed(2)}</p>
+                </div>
                 <button
                   onClick={handleSaleSubmit}
                   disabled={cart.length === 0 || !customerName}
