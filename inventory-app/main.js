@@ -37,7 +37,8 @@ function createWindow() {
         height: 800,
         webPreferences: {
             nodeIntegration: true,
-            contextIsolation: false
+            contextIsolation: true,
+            preload: path.join(__dirname, 'preload.js')
         }
     });
 
@@ -91,8 +92,11 @@ function initializeDatabase() {
             CREATE TABLE IF NOT EXISTS sales (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                total REAL NOT NULL,
                 customer_name TEXT,
+                subtotal REAL NOT NULL,
+                discount REAL DEFAULT 0,
+                total_discount REAL DEFAULT 0,
+                total REAL NOT NULL,
                 status TEXT DEFAULT 'completed'
             )
         `);
@@ -103,8 +107,10 @@ function initializeDatabase() {
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 sale_id INTEGER,
                 product_id INTEGER,
-                quantity INTEGER NOT NULL,
+                quantity REAL NOT NULL,
                 price REAL NOT NULL,
+                discount REAL DEFAULT 0,
+                total REAL NOT NULL,
                 FOREIGN KEY (sale_id) REFERENCES sales(id),
                 FOREIGN KEY (product_id) REFERENCES products(id)
             )
@@ -141,6 +147,84 @@ ipcMain.handle('add-product', (event, product) => {
     } catch (err) {
         return { success: false, error: err.message };
     }
+});
+
+ipcMain.handle('get-sales', () => {
+    const stmt = db.prepare('SELECT * FROM sales ORDER BY date DESC');
+    return stmt.all();
+});
+
+ipcMain.handle('create-sale', (event, saleData) => {
+    const createSale = db.transaction((sale) => {
+        // Insert sale record
+        const saleStmt = db.prepare(`
+            INSERT INTO sales (customer_name, subtotal, discount, total_discount, total, date)
+            VALUES (@customerName, @subtotal, @discount, @totalDiscount, @total, @date)
+        `);
+        const saleResult = saleStmt.run({
+            customerName: sale.customerName,
+            subtotal: sale.subtotal,
+            discount: sale.discount,
+            totalDiscount: sale.totalDiscount,
+            total: sale.total,
+            date: sale.date
+        });
+
+        const saleId = saleResult.lastInsertRowid;
+
+        // Insert sale items
+        const itemStmt = db.prepare(`
+            INSERT INTO sale_items (sale_id, product_id, quantity, price, discount, total)
+            VALUES (@saleId, @productId, @quantity, @price, @discount, @total)
+        `);
+
+        // Update product stock
+        const updateStockStmt = db.prepare(`
+            UPDATE products
+            SET stock = stock - @quantity
+            WHERE id = @productId
+        `);
+
+        // Process each item
+        for (const item of sale.items) {
+            itemStmt.run({
+                saleId,
+                productId: item.productId,
+                quantity: item.quantity,
+                price: item.price,
+                discount: item.discount || 0,
+                total: item.total
+            });
+
+            updateStockStmt.run({
+                quantity: item.quantity,
+                productId: item.productId
+            });
+        }
+
+        return { success: true, saleId };
+    });
+
+    try {
+        return createSale(saleData);
+    } catch (err) {
+        console.error('Error creating sale:', err);
+        return { success: false, error: err.message };
+    }
+});
+
+// Handle image saving
+ipcMain.handle('save-image', (event, { path: imageName, data }) => {
+    const imagePath = path.join(IMAGES_PATH, imageName);
+    fs.writeFileSync(imagePath, data);
+    return imagePath;
+});
+
+// Handle invoice saving
+ipcMain.handle('save-invoice', (event, { saleId, data }) => {
+    const invoicePath = path.join(APP_DATA_PATH, 'invoices', `invoice-${saleId}.pdf`);
+    fs.writeFileSync(invoicePath, Buffer.from(data));
+    return invoicePath;
 });
 
 // Handle low stock notifications
