@@ -44,6 +44,11 @@ const Dashboard = () => {
     return 'Good Evening';
   };
 
+  // Format currency with Nepalese Rupee symbol
+  const formatCurrency = (amount) => {
+    return `Rs ${amount.toLocaleString()}`;
+  };
+
   // Mock data for charts
   const salesData = {
     labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
@@ -133,12 +138,12 @@ const Dashboard = () => {
         <div className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow duration-200">
           <div className="flex items-center justify-between mb-4">
             <div className="bg-green-100 rounded-full p-3">
-              <i className="fas fa-dollar-sign text-green-600 text-xl"></i>
+              <i className="fas fa-rupee-sign text-green-600 text-xl"></i>
             </div>
             <span className="text-sm font-medium text-green-600">Revenue</span>
           </div>
           <h3 className="text-2xl font-bold text-gray-900">
-            ${stats.monthlyRevenue.toLocaleString()}
+            {formatCurrency(stats.monthlyRevenue)}
           </h3>
           <p className="text-gray-600 text-sm">Monthly Revenue</p>
           <div className="mt-4 flex items-center text-green-600">
