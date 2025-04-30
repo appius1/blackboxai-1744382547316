@@ -6,18 +6,7 @@ const DB = {
   // Initialize with some sample data
   init() {
     if (!localStorage.getItem('products')) {
-      localStorage.setItem('products', JSON.stringify([
-        {
-          id: 1,
-          name: 'Sample Product',
-          sku: 'SAMPLE001',
-          category: 'Electronics',
-          description: 'A sample product',
-          price: 199.99,
-          stock: 10,
-          reorder_point: 5
-        }
-      ]));
+      localStorage.setItem('products', JSON.stringify([]));
     }
     if (!localStorage.getItem('sales')) {
       localStorage.setItem('sales', JSON.stringify([]));
