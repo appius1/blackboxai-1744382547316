@@ -69,56 +69,58 @@ app.on('activate', () => {
 
 // Database initialization
 function initializeDatabase() {
-    const createTables = db.transaction(() => {
-        // Products table
+    try {
+        // Create tables
         db.exec(`
+            CREATE TABLE IF NOT EXISTS categories (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL UNIQUE,
+                description TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+
             CREATE TABLE IF NOT EXISTS products (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT NOT NULL,
                 sku TEXT UNIQUE NOT NULL,
-                category TEXT NOT NULL,
+                category_id INTEGER NOT NULL,
                 description TEXT,
                 price REAL NOT NULL,
                 stock INTEGER NOT NULL DEFAULT 0,
                 reorder_point INTEGER NOT NULL DEFAULT 5,
                 image_path TEXT,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        `);
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (category_id) REFERENCES categories(id)
+            );
 
-        // Sales table
-        db.exec(`
             CREATE TABLE IF NOT EXISTS sales (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                date DATETIME DEFAULT CURRENT_TIMESTAMP,
                 customer_name TEXT,
+                phone_number TEXT,
                 subtotal REAL NOT NULL,
                 discount REAL DEFAULT 0,
                 total_discount REAL DEFAULT 0,
                 total REAL NOT NULL,
+                amount_paid REAL DEFAULT 0,
+                amount_left REAL DEFAULT 0,
                 status TEXT DEFAULT 'completed'
-            )
-        `);
+            );
 
-        // Sale items table
-        db.exec(`
             CREATE TABLE IF NOT EXISTS sale_items (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 sale_id INTEGER,
                 product_id INTEGER,
-                quantity REAL NOT NULL,
+                quantity INTEGER NOT NULL,
                 price REAL NOT NULL,
                 discount REAL DEFAULT 0,
                 total REAL NOT NULL,
                 FOREIGN KEY (sale_id) REFERENCES sales(id),
                 FOREIGN KEY (product_id) REFERENCES products(id)
-            )
+            );
         `);
-    });
 
-    try {
-        createTables();
         console.log('Database initialized successfully');
     } catch (err) {
         console.error('Database initialization error:', err);
@@ -129,16 +131,69 @@ function initializeDatabase() {
 // Initialize database on app start
 initializeDatabase();
 
+// Add default category if none exists
+const addDefaultCategory = () => {
+    try {
+        const categories = db.prepare('SELECT * FROM categories').all();
+        if (categories.length === 0) {
+            const stmt = db.prepare('INSERT INTO categories (name, description) VALUES (?, ?)');
+            stmt.run('General', 'Default category for products');
+            console.log('Added default category');
+        }
+    } catch (err) {
+        console.error('Error adding default category:', err);
+    }
+};
+
+addDefaultCategory();
+
 // IPC Handlers
-ipcMain.handle('get-products', () => {
-    const stmt = db.prepare('SELECT * FROM products ORDER BY name');
+ipcMain.handle('get-categories', () => {
+    const stmt = db.prepare('SELECT * FROM categories ORDER BY name');
     return stmt.all();
+});
+
+ipcMain.handle('add-category', (event, category) => {
+    const stmt = db.prepare(`
+        INSERT INTO categories (name, description)
+        VALUES (@name, @description)
+    `);
+    
+    try {
+        const info = stmt.run(category);
+        return { success: true, id: info.lastInsertRowid };
+    } catch (err) {
+        return { success: false, error: err.message };
+    }
+});
+
+ipcMain.handle('get-products', () => {
+    const stmt = db.prepare(`
+        SELECT p.*, c.name as category_name 
+        FROM products p 
+        LEFT JOIN categories c ON p.category_id = c.id 
+        ORDER BY p.name
+    `);
+    return stmt.all();
+});
+
+ipcMain.handle('search-products', (event, searchTerm) => {
+    const stmt = db.prepare(`
+        SELECT p.*, c.name as category_name 
+        FROM products p 
+        LEFT JOIN categories c ON p.category_id = c.id 
+        WHERE p.name LIKE @search 
+           OR p.sku LIKE @search 
+           OR c.name LIKE @search 
+        ORDER BY p.name
+    `);
+    return stmt.all({ search: `%${searchTerm}%` });
 });
 
 ipcMain.handle('add-product', (event, product) => {
     const stmt = db.prepare(`
-        INSERT INTO products (name, sku, category, description, price, stock, reorder_point, image_path)
-        VALUES (@name, @sku, @category, @description, @price, @stock, @reorder_point, @image_path)
+        INSERT INTO products (name, sku, category_id, description, price, stock, reorder_point, image_path)
+        VALUES (@name, @sku, @category_id, @description, @price, @stock, @reorder_point, @image_path)
     `);
     
     try {
@@ -150,7 +205,15 @@ ipcMain.handle('add-product', (event, product) => {
 });
 
 ipcMain.handle('get-sales', () => {
-    const stmt = db.prepare('SELECT * FROM sales ORDER BY date DESC');
+    const stmt = db.prepare(`
+        SELECT s.*, 
+               GROUP_CONCAT(si.quantity || 'x ' || p.name) as items
+        FROM sales s
+        LEFT JOIN sale_items si ON s.id = si.sale_id
+        LEFT JOIN products p ON si.product_id = p.id
+        GROUP BY s.id
+        ORDER BY s.date DESC
+    `);
     return stmt.all();
 });
 
@@ -158,15 +221,24 @@ ipcMain.handle('create-sale', (event, saleData) => {
     const createSale = db.transaction((sale) => {
         // Insert sale record
         const saleStmt = db.prepare(`
-            INSERT INTO sales (customer_name, subtotal, discount, total_discount, total, date)
-            VALUES (@customerName, @subtotal, @discount, @totalDiscount, @total, @date)
+            INSERT INTO sales (
+                customer_name, phone_number, subtotal, discount, 
+                total_discount, total, amount_paid, amount_left, date
+            )
+            VALUES (
+                @customerName, @phoneNumber, @subtotal, @discount,
+                @totalDiscount, @total, @amountPaid, @amountLeft, @date
+            )
         `);
         const saleResult = saleStmt.run({
             customerName: sale.customerName,
+            phoneNumber: sale.phoneNumber,
             subtotal: sale.subtotal,
             discount: sale.discount,
             totalDiscount: sale.totalDiscount,
             total: sale.total,
+            amountPaid: sale.amountPaid,
+            amountLeft: sale.amountLeft,
             date: sale.date
         });
 
