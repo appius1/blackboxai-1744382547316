@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Offline-first inventory management system",
   "main": "main.js",
+  "author": "Your Name",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
@@ -18,12 +19,17 @@
       "build/**/*",
       "main.js",
       "preload.js",
-      "electron/**"
+      "electron/**",
+      "src/**"
     ],
     "directories": {
       "buildResources": "assets"
     },
+    "extraMetadata": {
+      "main": "main.js"
+    },
     "win": {
+      "sign": false,
       "target": [
         "portable"
       ]
@@ -50,6 +56,7 @@
     "cross-env": "^7.0.3",
     "electron": "^24.3.0",
     "electron-builder": "^23.6.0",
+    "electron-rebuild": "^3.2.9",
     "postcss": "^8.4.23",
     "postcss-cli": "^10.1.0",
     "postcss-import": "^16.1.0",
