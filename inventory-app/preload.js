@@ -20,7 +20,10 @@ contextBridge.exposeInMainWorld(
         'save-image',
         'save-invoice',
         'select-backup-location',
-        'enable-notifications'
+        'enable-notifications',
+        'get-categories',
+        'add-category',
+        'search-products'
       ];
       if (validChannels.includes(channel)) {
         return ipcRenderer.invoke(channel, data);
