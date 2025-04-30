@@ -33,46 +33,105 @@ const Reports = () => {
     topProducts: [],
     lowStockItems: []
   });
-  const [dateRange, setDateRange] = useState('month'); // week, month, year
+  const [dateRange, setDateRange] = useState('month');
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     loadReportData();
+
+    // Add event listener for dashboard reload
+    const handleReload = () => {
+      loadReportData();
+    };
+
+    document.addEventListener('reload-dashboard', handleReload);
+
+    // Cleanup
+    return () => {
+      document.removeEventListener('reload-dashboard', handleReload);
+    };
   }, [dateRange]);
 
   const loadReportData = async () => {
     try {
       setIsLoading(true);
-      const data = await window.electron.invoke('get-report-data', { dateRange });
-      setReportData(data);
+      
+      // Get all products and sales
+      const [products, sales] = await Promise.all([
+        window.electron.invoke('get-products'),
+        window.electron.invoke('get-sales')
+      ]);
+
+      // Filter sales by date range
+      const now = new Date();
+      const filteredSales = sales.filter(sale => {
+        const saleDate = new Date(sale.date);
+        switch (dateRange) {
+          case 'week':
+            return now - saleDate <= 7 * 24 * 60 * 60 * 1000;
+          case 'month':
+            return now.getMonth() === saleDate.getMonth() && 
+                   now.getFullYear() === saleDate.getFullYear();
+          case 'year':
+            return now.getFullYear() === saleDate.getFullYear();
+          default:
+            return true;
+        }
+      });
+
+      // Process sales over time
+      const salesByDate = new Map();
+      filteredSales.forEach(sale => {
+        const date = new Date(sale.date).toLocaleDateString();
+        salesByDate.set(date, (salesByDate.get(date) || 0) + sale.total);
+      });
+
+      // Process category distribution
+      const categoryCount = new Map();
+      products.forEach(product => {
+        categoryCount.set(product.category, (categoryCount.get(product.category) || 0) + 1);
+      });
+
+      // Process top products
+      const productSales = new Map();
+      filteredSales.forEach(sale => {
+        sale.items?.forEach(item => {
+          productSales.set(item.productId, (productSales.get(item.productId) || 0) + item.quantity);
+        });
+      });
+
+      const topProducts = products
+        .map(product => ({
+          id: product.id,
+          name: product.name,
+          salesCount: productSales.get(product.id) || 0
+        }))
+        .sort((a, b) => b.salesCount - a.salesCount)
+        .slice(0, 5);
+
+      // Process low stock items
+      const lowStockItems = products
+        .filter(product => product.stock <= product.reorder_point)
+        .map(item => ({
+          id: item.id,
+          name: item.name,
+          stock: item.stock,
+          reorderPoint: item.reorder_point
+        }));
+
+      setReportData({
+        salesOverTime: Array.from(salesByDate.entries())
+          .map(([date, total]) => ({ date, total }))
+          .sort((a, b) => new Date(a.date) - new Date(b.date)),
+        categoryDistribution: Object.fromEntries(categoryCount.entries()),
+        topProducts,
+        lowStockItems
+      });
     } catch (error) {
       console.error('Error loading report data:', error);
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const exportToCSV = (data, filename) => {
-    try {
-      const csvContent = convertToCSV(data);
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = filename;
-      link.click();
-    } catch (error) {
-      console.error('Error exporting CSV:', error);
-      alert('Error exporting CSV');
-    }
-  };
-
-  const convertToCSV = (data) => {
-    if (!data || !data.length) return '';
-    const headers = Object.keys(data[0]);
-    const rows = data.map(item => 
-      headers.map(header => JSON.stringify(item[header])).join(',')
-    );
-    return [headers.join(','), ...rows].join('\n');
   };
 
   // Chart configurations
@@ -113,8 +172,7 @@ const Reports = () => {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
+    <div className="space-y-6" data-component="Reports">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900">Reports</h1>
         <div className="flex space-x-3">
@@ -127,13 +185,6 @@ const Reports = () => {
             <option value="month">Last Month</option>
             <option value="year">Last Year</option>
           </select>
-          <button
-            onClick={() => exportToCSV(reportData.salesOverTime, 'sales-report.csv')}
-            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
-          >
-            <i className="fas fa-file-csv mr-2"></i>
-            Export Report
-          </button>
         </div>
       </div>
 
@@ -143,10 +194,9 @@ const Reports = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Sales Over Time */}
           <div className="bg-white rounded-lg shadow-sm p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Sales Over Time</h2>
-            <div className="min-w-0 h-64">
+            <div className="h-64">
               <Line
                 data={salesChartData}
                 options={{
@@ -162,10 +212,9 @@ const Reports = () => {
             </div>
           </div>
 
-          {/* Category Distribution */}
           <div className="bg-white rounded-lg shadow-sm p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Category Distribution</h2>
-            <div className="min-w-0 h-64">
+            <div className="h-64">
               <Pie
                 data={categoryChartData}
                 options={{
@@ -181,10 +230,9 @@ const Reports = () => {
             </div>
           </div>
 
-          {/* Top Products */}
           <div className="bg-white rounded-lg shadow-sm p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Top Products</h2>
-            <div className="min-w-0 h-64">
+            <div className="h-64">
               <Bar
                 data={topProductsChartData}
                 options={{
@@ -200,7 +248,6 @@ const Reports = () => {
             </div>
           </div>
 
-          {/* Low Stock Items */}
           <div className="bg-white rounded-lg shadow-sm p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Low Stock Items</h2>
             <div className="overflow-y-auto max-h-64">
