@@ -34,12 +34,12 @@ const TopNav = ({ onMobileMenuToggle, isMobileMenuOpen }) => {
   }, []);
 
   return (
-    <header className="bg-white shadow-sm z-30">
+    <header className="bg-white shadow-md z-30">
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center">
             <button 
-              className="text-gray-500 hover:text-gray-600 md:hidden focus:outline-none"
+              className="text-gray-500 hover:text-gray-700 md:hidden focus:outline-none transition-colors duration-300"
               onClick={onMobileMenuToggle}
               aria-label="Toggle menu"
             >
@@ -49,7 +49,7 @@ const TopNav = ({ onMobileMenuToggle, isMobileMenuOpen }) => {
 
           <div className="flex items-center space-x-4">
             {/* Search Bar */}
-            <div className="hidden md:flex items-center bg-gray-100 rounded-lg px-3 py-2">
+            <div className="hidden md:flex items-center bg-gray-100 rounded-lg px-3 py-2 shadow-sm transition-shadow duration-300 hover:shadow-md">
               <i className="fas fa-search text-gray-400"></i>
               <input
                 type="text"
@@ -61,19 +61,19 @@ const TopNav = ({ onMobileMenuToggle, isMobileMenuOpen }) => {
             {/* Notifications */}
             <div className="relative" ref={notificationsRef}>
               <button
-                className="p-2 text-gray-400 hover:text-gray-500 focus:outline-none relative"
+                className="p-2 text-gray-400 hover:text-gray-600 focus:outline-none relative transition-colors duration-300"
                 onClick={() => setShowNotifications(!showNotifications)}
                 aria-label="Notifications"
               >
                 <i className="fas fa-bell text-xl"></i>
                 {notifications.length > 0 && (
-                  <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full"></span>
+                  <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full animate-pulse"></span>
                 )}
               </button>
 
               {/* Notifications Dropdown */}
               {showNotifications && (
-                <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg py-2 z-50 border border-gray-200">
+                <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg py-2 z-50 border border-gray-200 transition-opacity duration-300">
                   <div className="px-4 py-2 border-b border-gray-100">
                     <h3 className="text-sm font-semibold text-gray-700">Notifications</h3>
                   </div>
@@ -114,11 +114,11 @@ const TopNav = ({ onMobileMenuToggle, isMobileMenuOpen }) => {
             <div className="flex items-center space-x-3">
               <img
                 className="h-9 w-9 rounded-full object-cover border-2 border-gray-200"
-                src="https://ui-avatars.com/api/?name=Admin&background=6366f1&color=fff"
+                src="https://ui-avatars.com/api/?name=Kushal&background=6366f1&color=fff"
                 alt="User avatar"
               />
               <div className="hidden md:block">
-                <p className="text-sm font-medium text-gray-700">Admin User</p>
+                <p className="text-sm font-medium text-gray-700">Kushal</p>
                 <p className="text-xs text-gray-500">Administrator</p>
               </div>
             </div>
