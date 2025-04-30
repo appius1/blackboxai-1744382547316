@@ -4,30 +4,113 @@ import html2canvas from 'html2canvas';
 
 const Products = () => {
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     sku: '',
-    category: '',
+    category_id: '',
     description: '',
     price: '',
     stock: '',
     reorder_point: '',
     image: null
   });
-  const [searchTerm, setSearchTerm] = useState('');
+
+  const [categoryFormData, setCategoryFormData] = useState({
+    name: '',
+    description: ''
+  });
+
+  // Load initial data
   const [formErrors, setFormErrors] = useState({});
 
+  // Initial data load
   useEffect(() => {
-    loadProducts();
+    const initializeData = async () => {
+      try {
+        const existingCategories = await window.electron.invoke('get-categories');
+        setCategories(existingCategories);
+        
+        if (existingCategories.length === 0) {
+          await window.electron.invoke('add-category', {
+            name: 'General',
+            description: 'Default category for products'
+          });
+          const updatedCategories = await window.electron.invoke('get-categories');
+          setCategories(updatedCategories);
+        }
+        
+        const products = await window.electron.invoke('get-products');
+        setProducts(products);
+      } catch (error) {
+        console.error('Error initializing data:', error);
+      }
+    };
+
+    initializeData();
   }, []);
 
-  const loadProducts = async () => {
+  const refreshData = async () => {
     try {
-      const products = await window.electron.invoke('get-products');
-      setProducts(products);
+      const [newCategories, newProducts] = await Promise.all([
+        window.electron.invoke('get-categories'),
+        window.electron.invoke('get-products')
+      ]);
+      setCategories(newCategories);
+      setProducts(newProducts);
     } catch (error) {
-      console.error('Error loading products:', error);
+      console.error('Error refreshing data:', error);
+    }
+  };
+
+  const searchProducts = async () => {
+    try {
+      const searchResults = await window.electron.invoke('search-products', searchTerm);
+      setProducts(searchResults);
+    } catch (error) {
+      console.error('Error searching products:', error);
+    }
+  };
+
+  // Update search effect to use refreshData
+  useEffect(() => {
+    if (searchTerm) {
+      searchProducts();
+    } else {
+      refreshData();
+    }
+  }, [searchTerm]);
+
+  const handleAddCategory = async (e) => {
+    e.preventDefault();
+    
+    if (!categoryFormData.name.trim()) {
+      alert('Category name is required');
+      return;
+    }
+
+    try {
+      const result = await window.electron.invoke('add-category', {
+        name: categoryFormData.name.trim(),
+        description: categoryFormData.description.trim()
+      });
+
+      if (result.success) {
+        setCategoryFormData({ name: '', description: '' });
+        setShowCategoryModal(false);
+        await refreshData(); // Use refreshData instead of loadCategories
+        
+        // Show success message
+        alert('Category added successfully');
+      } else {
+        alert('Error adding category: ' + result.error);
+      }
+    } catch (error) {
+      console.error('Error adding category:', error);
+      alert('Error adding category: ' + (error.message || 'Unknown error'));
     }
   };
 
@@ -35,7 +118,7 @@ const Products = () => {
     const errors = {};
     if (!formData.name.trim()) errors.name = 'Name is required';
     if (!formData.sku.trim()) errors.sku = 'SKU is required';
-    if (!formData.category.trim()) errors.category = 'Category is required';
+    if (!formData.category_id) errors.category_id = 'Category is required';
     if (!formData.price || formData.price <= 0) errors.price = 'Price must be greater than 0';
     if (!formData.stock || formData.stock < 0) errors.stock = 'Stock must be 0 or greater';
     if (!formData.reorder_point || formData.reorder_point < 0) errors.reorder_point = 'Reorder point must be 0 or greater';
@@ -45,7 +128,6 @@ const Products = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Validate form
     const errors = validateForm();
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
@@ -53,7 +135,6 @@ const Products = () => {
     }
 
     try {
-      // Handle image upload
       let imagePath = null;
       if (formData.image) {
         const fileName = `${Date.now()}-${formData.image.name}`;
@@ -79,7 +160,7 @@ const Products = () => {
         setFormData({
           name: '',
           sku: '',
-          category: '',
+          category_id: '',
           description: '',
           price: '',
           stock: '',
@@ -106,102 +187,30 @@ const Products = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    // Clear error when user starts typing
     if (formErrors[name]) {
       setFormErrors(prev => ({ ...prev, [name]: '' }));
     }
   };
-
-  const exportToPDF = async () => {
-    try {
-      const element = document.getElementById('products-table');
-      const canvas = await html2canvas(element);
-      const imgData = canvas.toDataURL('image/png');
-      
-      const pdf = new jsPDF('l', 'mm', 'a4');
-      const imgProps = pdf.getImageProperties(imgData);
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-      
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save('products-report.pdf');
-    } catch (error) {
-      console.error('Error generating PDF:', error);
-      alert('Error generating PDF');
-    }
-  };
-
-  const exportToCSV = () => {
-    try {
-      const headers = ['Name', 'SKU', 'Category', 'Price', 'Stock', 'Reorder Point'];
-      const csvContent = [
-        headers.join(','),
-        ...products.map(product => [
-          product.name,
-          product.sku,
-          product.category,
-          product.price,
-          product.stock,
-          product.reorder_point
-        ].join(','))
-      ].join('\n');
-
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = 'products.csv';
-      link.click();
-    } catch (error) {
-      console.error('Error exporting CSV:', error);
-      alert('Error exporting CSV');
-    }
-  };
-
-  const filteredProducts = products.filter(product =>
-    product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.category.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900">Products</h1>
-        <div className="space-x-3">
+        <div className="flex space-x-3">
           <button
-            onClick={() => {
-              setFormData({
-                name: '',
-                sku: '',
-                category: '',
-                description: '',
-                price: '',
-                stock: '',
-                reorder_point: '',
-                image: null
-              });
-              setFormErrors({});
-              setShowAddModal(true);
-            }}
+            onClick={() => setShowCategoryModal(true)}
+            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
+          >
+            <i className="fas fa-folder-plus mr-2"></i>
+            Add Category
+          </button>
+          <button
+            onClick={() => setShowAddModal(true)}
             className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700"
           >
             <i className="fas fa-plus mr-2"></i>
             Add Product
-          </button>
-          <button
-            onClick={exportToPDF}
-            className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700"
-          >
-            <i className="fas fa-file-pdf mr-2"></i>
-            Export PDF
-          </button>
-          <button
-            onClick={exportToCSV}
-            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
-          >
-            <i className="fas fa-file-csv mr-2"></i>
-            Export CSV
           </button>
         </div>
       </div>
@@ -211,7 +220,7 @@ const Products = () => {
         <i className="fas fa-search text-gray-400"></i>
         <input
           type="text"
-          placeholder="Search products..."
+          placeholder="Search products by name, SKU, or category..."
           className="ml-2 flex-1 outline-none"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
@@ -219,7 +228,7 @@ const Products = () => {
       </div>
 
       {/* Products Table */}
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden" id="products-table">
+      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
@@ -244,8 +253,8 @@ const Products = () => {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {filteredProducts.map((product) => (
-              <tr key={product.id}>
+            {products.map((product) => (
+              <tr key={product.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
                     {product.image_path ? (
@@ -269,10 +278,10 @@ const Products = () => {
                   {product.sku}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {product.category}
+                  {product.category_name}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  ${product.price.toFixed(2)}
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  Rs {product.price.toFixed(2)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full
@@ -304,69 +313,124 @@ const Products = () => {
         </table>
       </div>
 
-      {/* Add Product Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-lg">
+      {/* Add Category Modal */}
+      {showCategoryModal && (
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">Add New Product</h2>
-              <button
-                onClick={() => setShowAddModal(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
+              <h2 className="text-xl font-semibold text-gray-900">Add New Category</h2>
+              <button onClick={() => setShowCategoryModal(false)} className="text-gray-400 hover:text-gray-500">
                 <i className="fas fa-times"></i>
               </button>
             </div>
-            
-            <form onSubmit={handleSubmit} className="space-y-4">
+
+            <form onSubmit={handleAddCategory} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">Name</label>
+                <label className="block text-sm font-medium text-gray-700">Category Name</label>
                 <input
                   type="text"
-                  name="name"
+                  value={categoryFormData.name}
+                  onChange={(e) => setCategoryFormData({ ...categoryFormData, name: e.target.value })}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                   required
-                  className={`mt-1 block w-full rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 ${
-                    formErrors.name ? 'border-red-300' : 'border-gray-300'
-                  }`}
-                  value={formData.name}
-                  onChange={handleInputChange}
                 />
-                {formErrors.name && (
-                  <p className="mt-1 text-sm text-red-600">{formErrors.name}</p>
-                )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">SKU</label>
-                <input
-                  type="text"
-                  name="sku"
-                  required
-                  className={`mt-1 block w-full rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 ${
-                    formErrors.sku ? 'border-red-300' : 'border-gray-300'
-                  }`}
-                  value={formData.sku}
-                  onChange={handleInputChange}
+                <label className="block text-sm font-medium text-gray-700">Description</label>
+                <textarea
+                  value={categoryFormData.description}
+                  onChange={(e) => setCategoryFormData({ ...categoryFormData, description: e.target.value })}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  rows="3"
                 />
-                {formErrors.sku && (
-                  <p className="mt-1 text-sm text-red-600">{formErrors.sku}</p>
-                )}
+              </div>
+
+              <div className="flex justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={() => setShowCategoryModal(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+                >
+                  Add Category
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add Product Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-lg w-full p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold text-gray-900">Add New Product</h2>
+              <button onClick={() => setShowAddModal(false)} className="text-gray-400 hover:text-gray-500">
+                <i className="fas fa-times"></i>
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Name</label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    className={`mt-1 block w-full rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 ${
+                      formErrors.name ? 'border-red-300' : 'border-gray-300'
+                    }`}
+                  />
+                  {formErrors.name && (
+                    <p className="mt-1 text-sm text-red-600">{formErrors.name}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">SKU</label>
+                  <input
+                    type="text"
+                    name="sku"
+                    value={formData.sku}
+                    onChange={handleInputChange}
+                    className={`mt-1 block w-full rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 ${
+                      formErrors.sku ? 'border-red-300' : 'border-gray-300'
+                    }`}
+                  />
+                  {formErrors.sku && (
+                    <p className="mt-1 text-sm text-red-600">{formErrors.sku}</p>
+                  )}
+                </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700">Category</label>
-                <input
-                  type="text"
-                  name="category"
-                  required
-                  className={`mt-1 block w-full rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 ${
-                    formErrors.category ? 'border-red-300' : 'border-gray-300'
-                  }`}
-                  value={formData.category}
+                <select
+                  name="category_id"
+                  value={formData.category_id}
                   onChange={handleInputChange}
-                />
-                {formErrors.category && (
-                  <p className="mt-1 text-sm text-red-600">{formErrors.category}</p>
+                  className={`mt-1 block w-full rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 ${
+                    formErrors.category_id ? 'border-red-300' : 'border-gray-300'
+                  }`}
+                >
+                  <option value="">Select a category</option>
+                  {categories.map(category => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+                {formErrors.category_id && (
+                  <p className="mt-1 text-sm text-red-600">{formErrors.category_id}</p>
                 )}
               </div>
 
@@ -374,26 +438,26 @@ const Products = () => {
                 <label className="block text-sm font-medium text-gray-700">Description</label>
                 <textarea
                   name="description"
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                   value={formData.description}
                   onChange={handleInputChange}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  rows="3"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Price</label>
                   <input
                     type="number"
                     name="price"
-                    required
                     min="0"
                     step="0.01"
+                    value={formData.price}
+                    onChange={handleInputChange}
                     className={`mt-1 block w-full rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 ${
                       formErrors.price ? 'border-red-300' : 'border-gray-300'
                     }`}
-                    value={formData.price}
-                    onChange={handleInputChange}
                   />
                   {formErrors.price && (
                     <p className="mt-1 text-sm text-red-600">{formErrors.price}</p>
@@ -405,49 +469,47 @@ const Products = () => {
                   <input
                     type="number"
                     name="stock"
-                    required
                     min="0"
+                    value={formData.stock}
+                    onChange={handleInputChange}
                     className={`mt-1 block w-full rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 ${
                       formErrors.stock ? 'border-red-300' : 'border-gray-300'
                     }`}
-                    value={formData.stock}
-                    onChange={handleInputChange}
                   />
                   {formErrors.stock && (
                     <p className="mt-1 text-sm text-red-600">{formErrors.stock}</p>
                   )}
                 </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Reorder Point</label>
+                  <input
+                    type="number"
+                    name="reorder_point"
+                    min="0"
+                    value={formData.reorder_point}
+                    onChange={handleInputChange}
+                    className={`mt-1 block w-full rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 ${
+                      formErrors.reorder_point ? 'border-red-300' : 'border-gray-300'
+                    }`}
+                  />
+                  {formErrors.reorder_point && (
+                    <p className="mt-1 text-sm text-red-600">{formErrors.reorder_point}</p>
+                  )}
+                </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">Reorder Point</label>
-                <input
-                  type="number"
-                  name="reorder_point"
-                  required
-                  min="0"
-                  className={`mt-1 block w-full rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 ${
-                    formErrors.reorder_point ? 'border-red-300' : 'border-gray-300'
-                  }`}
-                  value={formData.reorder_point}
-                  onChange={handleInputChange}
-                />
-                {formErrors.reorder_point && (
-                  <p className="mt-1 text-sm text-red-600">{formErrors.reorder_point}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Image</label>
+                <label className="block text-sm font-medium text-gray-700">Product Image</label>
                 <input
                   type="file"
                   accept="image/*"
-                  className="mt-1 block w-full"
                   onChange={handleImageChange}
+                  className="mt-1 block w-full"
                 />
               </div>
 
-              <div className="flex justify-end space-x-3">
+              <div className="flex justify-end space-x-3 mt-6">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
